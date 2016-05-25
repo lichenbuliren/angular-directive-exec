@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <script src="bower_components/angular/angular.js"></script>
+    <title>Angular Template</title>
+</head>
+<body ng-controller="myController">
+<span my-draggable>Drag Me</span>
+<my-dialog ng-hide="dialogIsHidden" on-close="hideDialog(message)">
+    Check out the contents, {{name}}!
+</my-dialog>
+
+<script type="text/javascript">
+var myApp = angular.module('myApp', []).controller('myController', ['$scope','$timeout', function($scope,$timeout){
+    $scope.name = 'Tobias';
+    $scope.message = '';
+    $scope.hideDialog = function (message) {
+        $scope.message = message;
+        $scope.dialogIsHidden = true;
+        $timeout(function () {
+          $scope.message = '';
+          $scope.dialogIsHidden = false;
+        }, 2000);
+    }
+}]).directive('myDialog', function(){
+    // Runs during compile
+    return {
+        scope: {
+            // &符 允许指令触发表达式中表明的（onClose）父级事件
+            'close': '&onClose'
+        },
+        restrict: 'E',
+        template: '<div class="alert">'+
+                      '<a href class="close" ng-click="close({message: \'closing for now\'})">&times;</a>'+
+                      '<div ng-transclude></div>'+
+                  '</div>',
+        // 事实上，transclude 属相让指令内部的scope属性变成外部的（controller）层
+        // 不管指令内部是否有独立的作用域
+        // 只有当指令没有定义自己的scope，才会选择内部的scope
+        transclude: true,
+        link: function(scope, iElm, iAttrs, controller) {
+            scope.name = 'jeff';
+        }
+    };
+}).directive('myDraggable',['$document',function($document){
+    return {
+        link: function(scope,element,attr){
+            var startX = 0, startY = 0, x = 0, y = 0;
+            element.css({
+                position: 'relative',
+                border: '1px solid red',
+                background: 'lightgrey',
+                cursor: 'pointer'
+            });
+
+            element.on('mousedown',function(event){
+                event.preventDefault();
+                startX = event.pageX - x;
+                startY = event.pageY - y;
+                $document.on('mousemove',mousemove);
+                $document.on('mouseup',mouseup);
+            });
+
+            function mousemove(event){
+                y = event.pageY - startY;
+                x = event.pageX - startX;
+
+                element.css({
+                    top: y + 'px',
+                    left: x + 'px'
+                });
+            }
+
+            function mouseup(){
+                $document.off('mousemove', mousemove);
+                $document.off('mouseup', mouseup);
+            }
+        }
+    }
+}]);
+</script>
+</body>
+</html>

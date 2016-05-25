@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Angular Directive</title>
+    <script src="bower_components/angular/angular.js"></script>
+
+</head>
+<body>
+    <div ng-app="myApp1" ng-controller="myCtrl">
+        <h1>Demo1</h1>
+        <hello>
+            <br>
+            <span>这是内部的元素标签，</span>
+            <span>设置transclude: true；则内部元素标签不受影响</span>
+        </hello>
+        <br><br>
+        <hello></hello>
+
+        <div ng-repeat="thing in things">
+            {{thing}}.<hello></hello>
+        </div>
+    </div>
+
+    <div ng-app="myApp2" ng-controller="myCtrl2">
+        <h1>Demo2: Directive -> link 的用法</h1>
+        <expander class='expander' expander-title='title'>{{text}}</expander>
+        <style type="text/css">
+            .expander {
+                border: 1px solid black;
+                width: 250px;
+            }
+
+            .expander>.title {
+                background-color: black;
+                color: white;
+                padding: .1em .3em;
+                cursor: pointer;
+            }
+
+            .expander>.body {
+                padding: .1em .3em;
+            }
+        </style>
+    </div>
+
+
+    <script type="text/javascript">
+        var myApp1 = angular.module('myApp1', []).controller('myCtrl', ['$scope', function($scope){
+            $scope.things = [1,2,3,4,5,6];
+        }]).directive('hello', function(){
+            // Runs during compile
+            return {
+                // name: '',
+                // priority: 1,
+                // terminal: true,
+                // scope: {}, // {} = isolate, true = child, false/undefined = no change
+                // controller: function($scope, $element, $attrs, $transclude) {},
+                // require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
+                restrict: 'E', // E = Element, A = Attribute, C = Class, M = Comment
+                template: '<div>Hello World! <span ng-transclude><span></div>',
+                // templateUrl: '',
+                // 是否替换自定义的标签：hello -> div
+                replace: true,
+                // 是否处理内部元素，设置为true，表示内部元素不保持不变
+                transclude: true,
+                // compile 阶段进行标签解析和变换
+                // compile: function(tElement, tAttrs, function transclude(function(scope, cloneLinkingFn){ return function linking(scope, elm, attrs){}})),
+                // link阶段进行数据绑定等操作
+                link: function($scope, iElm, iAttrs, controller) {
+
+                }
+            }
+        });
+
+        var myApp2 = angular.module('myApp2', []).controller('myCtrl2', ['$scope', function($scope){
+            $scope.title = '点击展开';
+            $scope.text = '这里是内部的内容';
+        }]).directive('expander', function(){
+            // Runs during compile
+            return {
+                // name: '',
+                // priority: 1,
+                // terminal: true,
+                scope: {
+                    title: '=expanderTitle'
+                }, // {} = isolate, true = child, false/undefined = no change
+                // controller: function($scope, $element, $attrs, $transclude) {},
+                // require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
+                restrict: 'EA', // E = Element, A = Attribute, C = Class, M = Comment
+                template: '<div>'
+                             + '<div class="title" ng-click="toggle()">{{title}}</div>'
+                             + '<div class="body" ng-show="showMe" ng-transclude></div>'
+                         + '</div>',
+                // templateUrl: '',
+                replace: true,
+                transclude: true,
+                // compile: function(tElement, tAttrs, function transclude(function(scope, cloneLinkingFn){ return function linking(scope, elm, attrs){}})),
+                link: function(scope, iElm, iAttrs, controller) {
+                    scope.showMe = false;
+                    scope.toggle = function toggle(){
+                        scope.showMe = !scope.showMe;
+                    }
+                }
+            };
+        });
+    </script>
+</body>
+</html>
